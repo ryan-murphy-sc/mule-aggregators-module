@@ -57,9 +57,10 @@ public class CustomObjectStoreTestCase extends MuleArtifactFunctionalTestCase {
     Map<String, GroupAggregatorSharedInformation> privateInfoMap =
         (Map<String, GroupAggregatorSharedInformation>) osManager.getObjectStore(privateOS).retrieveAll();
 
-    assertThat(defaultInfoMap.size(), is(1));
-    assertThat(globalInfoMap.size(), is(1));
-    assertThat(privateInfoMap.size(), is(1));
+    //One for the store and one for the key
+    assertThat(defaultInfoMap.size(), is(2));
+    assertThat(globalInfoMap.size(), is(2));
+    assertThat(privateInfoMap.size(), is(2));
 
   }
 

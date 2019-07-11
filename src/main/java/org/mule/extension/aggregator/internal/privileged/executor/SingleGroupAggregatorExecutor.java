@@ -11,7 +11,7 @@ import static java.lang.String.format;
 import static org.mule.runtime.core.api.util.UUID.getUUID;
 import org.mule.extension.aggregator.api.AggregationAttributes;
 import org.mule.extension.aggregator.internal.storage.content.AggregatedContent;
-import org.mule.extension.aggregator.internal.storage.content.SimpleAggregatedContent;
+import org.mule.extension.aggregator.internal.storage.content.IndexedAggregatedContent;
 import org.mule.extension.aggregator.internal.storage.info.AggregatorSharedInformation;
 import org.mule.extension.aggregator.internal.storage.info.SimpleAggregatorSharedInformation;
 import org.mule.extension.aggregator.internal.task.AsyncTask;
@@ -37,7 +37,7 @@ public abstract class SingleGroupAggregatorExecutor extends AbstractAggregatorEx
   }
 
   void resetGroup() {
-    getSharedInfoLocalCopy().setAggregatedContent(new SimpleAggregatedContent(groupSize));
+    getSharedInfoLocalCopy().setAggregatedContent(new IndexedAggregatedContent(getAggregatorKey(), groupSize, getStorage()));
     getSharedInfoLocalCopy().setAggregationId(getUUID());
   }
 
@@ -60,7 +60,7 @@ public abstract class SingleGroupAggregatorExecutor extends AbstractAggregatorEx
   AggregatedContent getAggregatedContent() {
     AggregatedContent aggregatedContent = getSharedInfoLocalCopy().getAggregatedContent();
     if (aggregatedContent == null) {
-      aggregatedContent = new SimpleAggregatedContent(groupSize);
+      aggregatedContent = new IndexedAggregatedContent(getAggregatorKey(), groupSize, getStorage());
       getSharedInfoLocalCopy().setAggregatedContent(aggregatedContent);
     }
     return aggregatedContent;

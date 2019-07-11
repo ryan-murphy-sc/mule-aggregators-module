@@ -7,7 +7,6 @@
 package org.mule.extension.aggregator.internal.privileged.executor;
 
 
-import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -24,7 +23,9 @@ import org.mule.extension.aggregator.internal.config.AggregatorManager;
 import org.mule.extension.aggregator.internal.privileged.CompletionCallbackWrapper;
 import org.mule.extension.aggregator.internal.source.AggregatorListener;
 import org.mule.extension.aggregator.internal.storage.content.AggregatedContent;
+import org.mule.extension.aggregator.internal.storage.content.IndexedAggregatedContent;
 import org.mule.extension.aggregator.internal.storage.info.AggregatorSharedInformation;
+import org.mule.extension.aggregator.internal.storage.info.ObjectStoreAwareAggregatorSharedInformation;
 import org.mule.extension.aggregator.internal.task.AsyncTask;
 import org.mule.runtime.api.cluster.ClusterService;
 import org.mule.runtime.api.exception.MuleException;
@@ -59,6 +60,7 @@ import org.mule.runtime.extension.api.runtime.source.SourceCallbackContext;
 import org.mule.runtime.module.extension.api.runtime.privileged.ExecutionContextAdapter;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -119,7 +121,7 @@ public abstract class AbstractAggregatorExecutor
   private Scheduler scheduler;
   private PrimaryNodeLifecycleNotificationListener notificationListener;
   private AggregatorSharedInformation sharedInfoLocalCopy;
-  private LazyValue<ObjectStore<AggregatorSharedInformation>> storage;
+  private LazyValue<ObjectStore> storage;
 
   //When clustered, only the primaryNode should have this flag in true so that when another node changes to primary
   //all the logic in the start() method is executed.
@@ -129,7 +131,7 @@ public abstract class AbstractAggregatorExecutor
   private boolean shouldSynchronizeToOS = true;
 
   protected void injectParameters(Map<String, Object> parameters) {
-    this.objectStore = (ObjectStore<AggregatorSharedInformation>) parameters.get("objectStore");
+    this.objectStore = (ObjectStore) parameters.get("objectStore");
     this.name = (String) parameters.get("name");
   }
 
@@ -181,7 +183,7 @@ public abstract class AbstractAggregatorExecutor
     //TODO: fix this MULE-9480
     initialiseIfNeeded(aggregatorManager);
     aggregatorManager.registerAggregator(name, this::scheduleRegisteredAsyncAggregations);
-    storage = new LazyValue<ObjectStore<AggregatorSharedInformation>>(this::getConfiguredObjectStore);
+    storage = new LazyValue<>(this::getConfiguredObjectStore);
     notificationListener = new PrimaryNodeLifecycleNotificationListener(this, notificationListenerRegistry);
     notificationListener.register();
   }
@@ -324,7 +326,7 @@ public abstract class AbstractAggregatorExecutor
     }
   }
 
-  private String getAggregatorKey() {
+  protected String getAggregatorKey() {
     return format("%s:%s:%s", AGGREGATORS_MODULE_KEY, doGetAggregatorKey(), name);
   }
 
@@ -340,7 +342,7 @@ public abstract class AbstractAggregatorExecutor
     return sharedInfoLocalCopy;
   }
 
-  private ObjectStore<AggregatorSharedInformation> getStorage() {
+  protected <T extends Serializable> ObjectStore<T> getStorage() {
     return storage.get();
   }
 
@@ -348,9 +350,12 @@ public abstract class AbstractAggregatorExecutor
     String aggregatorKey = getAggregatorKey();
     try {
       if (getStorage().contains(aggregatorKey)) {
-        sharedInfoLocalCopy = getStorage().retrieve(getAggregatorKey());
+        sharedInfoLocalCopy = this.<AggregatorSharedInformation>getStorage().retrieve(getAggregatorKey());
       } else {
         sharedInfoLocalCopy = createSharedInfo();
+      }
+      if (sharedInfoLocalCopy instanceof ObjectStoreAwareAggregatorSharedInformation) {
+        ((ObjectStoreAwareAggregatorSharedInformation) sharedInfoLocalCopy).setObjectStore(getStorage());
       }
     } catch (ObjectStoreException e) {
       throw new ModuleException("Found error when trying to access ObjectStore", OBJECT_STORE_ACCESS, e);

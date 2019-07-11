@@ -8,17 +8,28 @@ package org.mule.extension.aggregator.internal.storage.info;
 
 
 import org.mule.extension.aggregator.internal.storage.content.AggregatedContent;
+import org.mule.extension.aggregator.internal.storage.content.ObjectStoreAwareAggregatedContent;
 import org.mule.extension.aggregator.internal.task.AsyncTask;
+import org.mule.runtime.api.store.ObjectStore;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class GroupAggregatorSharedInformation implements AggregatorSharedInformation {
+public class GroupAggregatorSharedInformation implements ObjectStoreAwareAggregatorSharedInformation {
 
   private static final long serialVersionUID = 5216802662481396417L;
   private Map<String, AggregatedContent> contentMap = new HashMap<>();
   private Map<String, AsyncTask> registeredEvictions = new HashMap<>();
   private Map<String, AsyncTask> registeredTimeouts = new HashMap<>();
+
+  @Override
+  public void setObjectStore(ObjectStore objectStore) {
+    for (AggregatedContent aggregatedContent : contentMap.values()) {
+      if (aggregatedContent instanceof ObjectStoreAwareAggregatedContent) {
+        ((ObjectStoreAwareAggregatedContent) aggregatedContent).setObjectStore(objectStore);
+      }
+    }
+  }
 
   public AggregatedContent getAggregatedContent(String groupId) {
     return contentMap.get(groupId);

@@ -20,7 +20,7 @@ import org.mule.extension.aggregator.api.AggregationAttributes;
 import org.mule.extension.aggregator.internal.routes.IncrementalAggregationRoute;
 import org.mule.extension.aggregator.internal.storage.content.AbstractAggregatedContent;
 import org.mule.extension.aggregator.internal.storage.content.AggregatedContent;
-import org.mule.extension.aggregator.internal.storage.content.SimpleAggregatedContent;
+import org.mule.extension.aggregator.internal.storage.content.IndexedAggregatedContent;
 import org.mule.extension.aggregator.internal.storage.info.AggregatorSharedInformation;
 import org.mule.extension.aggregator.internal.storage.info.GroupAggregatorSharedInformation;
 import org.mule.extension.aggregator.internal.task.AsyncTask;
@@ -122,7 +122,7 @@ public class GroupBasedAggregatorOperationsExecutor extends AbstractAggregatorEx
         throw new ModuleException(format("Trying to aggregate a new element to the group with id: %s ,but it's already complete",
                                          aggregatorParameters.getGroupId()),
                                   GROUP_COMPLETED);
-      } else if (((SimpleAggregatedContent) groupAggregatedContent).isTimedOut()) {
+      } else if (((AbstractAggregatedContent) groupAggregatedContent).isTimedOut()) {
         throw new ModuleException(format("Trying to aggregate a new element to the group with id: %s ,but it has already timed out",
                                          aggregatorParameters.getGroupId()),
                                   GROUP_TIMED_OUT);
@@ -205,7 +205,7 @@ public class GroupBasedAggregatorOperationsExecutor extends AbstractAggregatorEx
     AggregatedContent groupStorage = getSharedInfoLocalCopy().getAggregatedContent(groupId);
     if (groupStorage != null) {
       List<TypedValue> elements = groupStorage.getAggregatedElements();
-      ((SimpleAggregatedContent) groupStorage).setTimedOut();
+      ((AbstractAggregatedContent) groupStorage).setTimedOut();
       notifyListenerOnTimeout(elements, getAttributes(groupId, groupStorage));
       handleGroupEviction(groupId, lastConfiguredEvictionTime, lastConfiguredEvictionTimeUnit);
       if (LOGGER.isDebugEnabled()) {
@@ -214,11 +214,10 @@ public class GroupBasedAggregatorOperationsExecutor extends AbstractAggregatorEx
     }
   }
 
-
   private AggregatedContent getOrCreateAggregatedContent(String groupId, int groupSize) {
     AggregatedContent aggregatedContent = getSharedInfoLocalCopy().getAggregatedContent(groupId);
     if (aggregatedContent == null) {
-      aggregatedContent = new SimpleAggregatedContent(groupSize);
+      aggregatedContent = new IndexedAggregatedContent(getAggregatorKey() + "." + groupId, groupSize, getStorage());
       getSharedInfoLocalCopy().setAggregatedContent(groupId, aggregatedContent);
     }
     if (((AbstractAggregatedContent) aggregatedContent).getMaxSize() != groupSize) {

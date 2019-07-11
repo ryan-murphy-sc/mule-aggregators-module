@@ -8,15 +8,24 @@ package org.mule.extension.aggregator.internal.storage.info;
 
 
 import org.mule.extension.aggregator.internal.storage.content.AggregatedContent;
+import org.mule.extension.aggregator.internal.storage.content.ObjectStoreAwareAggregatedContent;
 import org.mule.extension.aggregator.internal.task.AsyncTask;
+import org.mule.runtime.api.store.ObjectStore;
 
 
-public class SimpleAggregatorSharedInformation implements AggregatorSharedInformation {
+public class SimpleAggregatorSharedInformation implements ObjectStoreAwareAggregatorSharedInformation {
 
   private static final long serialVersionUID = 2720335740399722498L;
   private AggregatedContent content;
   private String AggregationId;
   private AsyncTask asyncAggregationTask;
+
+  @Override
+  public void setObjectStore(ObjectStore objectStore) {
+    if (content instanceof ObjectStoreAwareAggregatedContent) {
+      ((ObjectStoreAwareAggregatedContent) content).setObjectStore(objectStore);
+    }
+  }
 
   public AggregatedContent getAggregatedContent() {
     return content;

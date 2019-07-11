@@ -10,7 +10,6 @@ import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 import org.mule.runtime.api.metadata.TypedValue;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,13 +35,6 @@ public class SimpleAggregatedContent extends AbstractAggregatedContent {
   public SimpleAggregatedContent(int maxSize) {
     this();
     this.maxSize = maxSize;
-  }
-
-  private void updateTimes(Long timeStamp) {
-    if (firstElementArrivalTime == null) {
-      firstElementArrivalTime = timeStamp;
-    }
-    lastElementArrivalTime = timeStamp;
   }
 
   @Override
@@ -71,30 +63,6 @@ public class SimpleAggregatedContent extends AbstractAggregatedContent {
 
   public boolean isComplete() {
     return maxSize == sequencedElements.size() + unsequencedElements.size();
-  }
-
-  private static class Index implements Serializable {
-
-    private static final long serialVersionUID = -8286760373914606346L;
-    private Integer sequenceNumber = null;
-    private int arrivalIndex = 0;
-
-    public Index(int arrivalIndex) {
-      this.arrivalIndex = arrivalIndex;
-    }
-
-    public Index(int arrivalIndex, int sequenceNumber) {
-      this(arrivalIndex);
-      this.sequenceNumber = sequenceNumber;
-    }
-
-    public Integer getSequenceNumber() {
-      return sequenceNumber;
-    }
-
-    public int getArrivalIndex() {
-      return arrivalIndex;
-    }
   }
 
 }

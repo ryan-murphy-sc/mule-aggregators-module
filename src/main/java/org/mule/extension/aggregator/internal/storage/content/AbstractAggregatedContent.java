@@ -48,4 +48,11 @@ public abstract class AbstractAggregatedContent implements AggregatedContent {
     return lastElementArrivalTime;
   }
 
+  protected void updateTimes(Long timeStamp) {
+    if (firstElementArrivalTime == null) {
+      firstElementArrivalTime = timeStamp;
+    }
+    lastElementArrivalTime = timeStamp;
+  }
+
 }
