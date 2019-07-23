@@ -40,7 +40,10 @@ public class GroupAggregatorSharedInformation implements ObjectStoreAwareAggrega
   }
 
   public void removeAggregatedContent(String groupId) {
-    contentMap.remove(groupId);
+    AggregatedContent removedContent = contentMap.remove(groupId);
+    if (removedContent instanceof ObjectStoreAwareAggregatedContent) {
+      ((ObjectStoreAwareAggregatedContent) removedContent).clean();
+    }
   }
 
   public boolean shouldRegisterEviction(String groupId) {

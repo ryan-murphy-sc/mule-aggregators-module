@@ -40,6 +40,20 @@ public class IndexedAggregatedContent extends AbstractAggregatedContent implemen
   }
 
   @Override
+  public void clean() {
+    try {
+      for (String key : unorderedElementKeys) {
+        objectStore.remove(key);
+      }
+      for (String key : orderedElementKeys) {
+        objectStore.remove(key);
+      }
+    } catch (ObjectStoreException e) {
+      throw new MuleRuntimeException(e);
+    }
+  }
+
+  @Override
   public void add(TypedValue newElement, Long timestamp) {
     String newElementKey = generateNewUnorderedElementKey(unorderedElementKeys.size());
     try {

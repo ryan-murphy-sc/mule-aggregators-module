@@ -32,6 +32,9 @@ public class SimpleAggregatorSharedInformation implements ObjectStoreAwareAggreg
   }
 
   public void setAggregatedContent(AggregatedContent content) {
+    if (this.content != null && this.content instanceof ObjectStoreAwareAggregatedContent) {
+      ((ObjectStoreAwareAggregatedContent) this.content).clean();
+    }
     this.content = content;
   }
 

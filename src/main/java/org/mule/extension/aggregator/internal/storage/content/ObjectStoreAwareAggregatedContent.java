@@ -13,4 +13,6 @@ public interface ObjectStoreAwareAggregatedContent extends AggregatedContent {
 
   void setObjectStore(ObjectStore<TypedValue> objectStore);
 
+  void clean();
+
 }
