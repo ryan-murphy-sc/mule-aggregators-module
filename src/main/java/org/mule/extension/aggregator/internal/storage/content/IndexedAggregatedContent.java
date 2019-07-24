@@ -22,7 +22,6 @@ public class IndexedAggregatedContent extends AbstractAggregatedContent implemen
   private transient ObjectStore<TypedValue> objectStore;
 
   private String aggregatorKey;
-  private int maxSize;
   private List<String> unorderedElementKeys;
   private List<String> orderedElementKeys;
 
